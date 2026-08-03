@@ -1,0 +1,60 @@
+{
+  "schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agents-factory",
+  "description": "Фабрика Агентов — версионируемая библиотека специализированных ИИ-агентов по отделам (meta, code, web, office, ops, content, marketing). Каждый агент — персонаж с именем, характером и историей апгрейдов. Устанавливается в любой проект.",
+  "owner": {
+    "name": "Boris Kupryakov",
+    "email": "boris.kupryakov@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "af-meta",
+      "source": "./plugins/meta",
+      "description": "Мета-отдел: агенты, которые создают, оценивают и прокачивают других агентов. Сердце фабрики.",
+      "version": "0.3.0",
+      "author": { "name": "Boris Kupryakov" }
+    },
+    {
+      "name": "af-code",
+      "source": "./plugins/code",
+      "description": "Отдел разработки кода: аналитики, авторы ТЗ, кодеры, тестеры, билдеры, деплойщики.",
+      "version": "0.3.0",
+      "author": { "name": "Boris Kupryakov" }
+    },
+    {
+      "name": "af-web",
+      "source": "./plugins/web",
+      "description": "Отдел веб-разработки: веб-аналитики, верстальщики, дизайнеры интерфейсов.",
+      "version": "0.3.0",
+      "author": { "name": "Boris Kupryakov" }
+    },
+    {
+      "name": "af-office",
+      "source": "./plugins/office",
+      "description": "Офисный отдел: юристы, финансисты, секретари, ассистенты.",
+      "version": "0.6.1",
+      "author": { "name": "Boris Kupryakov" }
+    },
+    {
+      "name": "af-ops",
+      "source": "./plugins/ops",
+      "description": "Операционный отдел: регламентщики, координаторы процессов.",
+      "version": "0.1.0",
+      "author": { "name": "Boris Kupryakov" }
+    },
+    {
+      "name": "af-marketing",
+      "source": "./plugins/marketing",
+      "description": "Отдел маркетинга: разведка рынка и контент-планирование на данных. Фома — конкуренты, свободные ниши, темы аудитории, план контента из отчётов.",
+      "version": "0.1.0",
+      "author": { "name": "Boris Kupryakov" }
+    },
+    {
+      "name": "af-content",
+      "source": "./plugins/content",
+      "description": "Отдел ПродКонтент: видеомейкеры и продающий контент. Вадик — ролики через Genosai; Димон — презентации 16:9 (PPTX/PDF) через Genosai.",
+      "version": "0.2.0",
+      "author": { "name": "Boris Kupryakov" }
+    }
+  ]
+}

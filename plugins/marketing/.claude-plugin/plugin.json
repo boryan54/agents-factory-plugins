@@ -1,0 +1,10 @@
+{
+  "schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "af-marketing",
+  "displayName": "Фабрика · Маркетинг",
+  "version": "0.1.0",
+  "description": "Отдел маркетинга: разведка рынка и контент-планирование на данных. Фома (market-analyst) — конкуренты, свободные ниши, темы аудитории, план контента из отчётов.",
+  "author": { "name": "Boris Kupryakov", "email": "boris.kupryakov@gmail.com" },
+  "keywords": ["marketing", "market-research", "competitors", "trends", "content-plan", "firecrawl"],
+  "license": "MIT"
+}

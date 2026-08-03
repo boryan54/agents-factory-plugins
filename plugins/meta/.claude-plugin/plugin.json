@@ -1,0 +1,10 @@
+{
+  "schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "af-meta",
+  "displayName": "Фабрика · Мета-отдел",
+  "version": "0.3.0",
+  "description": "Агенты, которые создают, оценивают и прокачивают других агентов. Плюс метод Карпати как базовый скилл.",
+  "author": { "name": "Boris Kupryakov", "email": "boris.kupryakov@gmail.com" },
+  "keywords": ["agents", "factory", "meta", "creator", "evaluator", "karpathy"],
+  "license": "MIT"
+}

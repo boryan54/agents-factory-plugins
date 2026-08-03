@@ -1,0 +1,10 @@
+{
+  "schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "af-content",
+  "displayName": "Фабрика · ПродКонтент",
+  "version": "0.2.0",
+  "description": "Отдел продающего контента: видеомейкеры, презентаторы, копирайтеры, дизайнеры карточек. Вадик (video-maker) — ролики через Genosai; Димон (presenter) — презентации 16:9 → PPTX/PDF через Genosai.",
+  "author": { "name": "Boris Kupryakov", "email": "boris.kupryakov@gmail.com" },
+  "keywords": ["content", "video", "marketing", "genosai", "product-video", "presentation", "pptx", "slides"],
+  "license": "MIT"
+}

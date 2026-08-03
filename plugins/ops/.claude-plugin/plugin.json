@@ -1,0 +1,10 @@
+{
+  "schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "af-ops",
+  "displayName": "Фабрика · Операционный отдел",
+  "version": "0.1.0",
+  "description": "Операционные агенты: регламентщики, координаторы процессов. Работают в проектах — пишут и ведут регламенты.",
+  "author": { "name": "Boris Kupryakov", "email": "boris.kupryakov@gmail.com" },
+  "keywords": ["ops", "process", "sop", "regulations", "coordination"],
+  "license": "MIT"
+}

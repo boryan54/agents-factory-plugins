@@ -1,0 +1,27 @@
+{
+  "product": "НАЗВАНИЕ ТОВАРА",
+  "workdir": "output",
+  "storyboard": {
+    "prompt": "A single image divided into an exact 3x3 grid of 9 equal frames, each frame exactly one third of the width and height. No borders, no gutters, no numbers, no captions between frames. Frame 1 (top-left): ... Frame 9 (bottom-right): ... Global style: photorealistic, cinematic lighting, identical color grade in all 9 frames, the same exact product from the reference image in every frame. No people. No text, no captions, no logos, no watermarks.",
+    "reference_files": ["card.jpg"],
+    "resolution": "4K"
+  },
+  "aspect_ratio": "16:9",
+  "video_model": "veo-3.1-lite",
+  "video_fallback_models": ["kling-3.0", "seedance-2.0"],
+  "video_resolution": "720p",
+  "scenes": [
+    { "n": 1, "video_prompt": "...", "vo_text": "до 6-7 слов" },
+    { "n": 2, "video_prompt": "...", "vo_text": "..." },
+    { "n": 3, "video_prompt": "...", "vo_text": "..." },
+    { "n": 4, "video_prompt": "...", "vo_text": "..." },
+    { "n": 5, "video_prompt": "...", "vo_text": "..." },
+    { "n": 6, "video_prompt": "...", "vo_text": "..." },
+    { "n": 7, "video_prompt": "...", "vo_text": "..." },
+    { "n": 8, "video_prompt": "...", "vo_text": "..." },
+    { "n": 9, "video_prompt": "...", "vo_text": "..." }
+  ],
+  "tts": { "voice": "Kore", "style": "Promo/Hype", "pace": "Natural" },
+  "music": { "prompt": "жанр, настроение, темп; instrumental", "track_index": 0 },
+  "final": "product_video.mp4"
+}

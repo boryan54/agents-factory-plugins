@@ -1,0 +1,10 @@
+{
+  "schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "af-code",
+  "displayName": "Фабрика · Отдел кода",
+  "version": "0.3.0",
+  "description": "Агенты разработки: аналитики, авторы ТЗ, кодеры, тестеры, билдеры, деплойщики.",
+  "author": { "name": "Boris Kupryakov", "email": "boris.kupryakov@gmail.com" },
+  "keywords": ["code", "development", "analyst", "testing", "deploy"],
+  "license": "MIT"
+}
