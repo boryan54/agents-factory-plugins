@@ -26,12 +26,28 @@ def load(path):
     return posts
 
 
-def show(posts, full, limit_chars=400):
+def pick_metric(posts):
+    """Какая метрика реально заполнена: reactions (JSON-экспорт) или views (таблица).
+
+    Сортировать всегда по `reactions` нельзя: в HTML-выгрузке их нет вовсе, поле
+    стоит в нуле, и «топ по реакциям» молча возвращает случайные посты.
+    """
+    for name in ("reactions", "views"):
+        if any((p.get(name) or 0) for p in posts):
+            return name
+    return "reactions"
+
+
+def show(posts, full, limit_chars=400, metric="reactions"):
+    label = "реакций" if metric == "reactions" else "просмотров"
     for p in posts:
         text = p["text"] if full else p["text"][:limit_chars]
         cut = "" if full or len(p["text"]) <= limit_chars else " …"
-        print(f"\n#{p['id']} ({p['date']}, {p['weekday']}) · реакций: {p['reactions']} · "
-              f"{p['chars']} знаков" + (f" · {p['media']}" if p.get("media") else ""))
+        val = p.get(metric)
+        media = f" · фото {len(p['photos'])}" if p.get("photos") else ""
+        print(f"\n#{p['id']} ({p['date']}, {p['weekday']}) · "
+              f"{label}: {'нет данных' if val is None else val} · "
+              f"{p['chars']} знаков{media}")
         if p["links"]:
             print(f"ссылки: {', '.join(p['links'][:5])}")
         print(text + cut)
@@ -51,6 +67,7 @@ def main():
     a = ap.parse_args()
 
     posts = load(a.posts)
+    metric = pick_metric(posts)
     if a.year:
         posts = [p for p in posts if p["year"] == a.year]
     if not posts:
@@ -59,20 +76,21 @@ def main():
 
     if a.id:
         ids = set(a.id)
-        show([p for p in posts if p["id"] in ids], a.full)
+        show([p for p in posts if p["id"] in ids], a.full, metric=metric)
         return
     if a.top:
-        show(sorted(posts, key=lambda p: -p["reactions"])[:a.top], a.full)
+        show(sorted(posts, key=lambda p: -(p.get(metric) or 0))[:a.top], a.full, metric=metric)
         return
     if a.bottom:
-        show(sorted(posts, key=lambda p: p["reactions"])[:a.bottom], a.full)
+        show(sorted((x for x in posts if x.get(metric) is not None),
+                    key=lambda p: p.get(metric) or 0)[:a.bottom], a.full, metric=metric)
         return
     if a.recent:
-        show(posts[-a.recent:], a.full)
+        show(posts[-a.recent:], a.full, metric=metric)
         return
     if a.random:
         rnd = random.Random(a.seed)
-        show(rnd.sample(posts, min(a.random, len(posts))), a.full)
+        show(rnd.sample(posts, min(a.random, len(posts))), a.full, metric=metric)
         return
     print(f"Всего постов: {len(posts)}. Укажи выборку: --top / --bottom / --recent / --random / --id")
 
