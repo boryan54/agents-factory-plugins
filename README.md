@@ -27,7 +27,7 @@ Claude Code с командой специализированных агент�
 |---|---|---|
 | `af-code` | Код | `analyst`, `builder`, `coder`, `deployer`, `spec-writer`, `tester` |
 | `af-content` | ПродКонтент | `presenter`, `video-maker` |
-| `af-marketing` | Маркетинг | `market-analyst`, `tg-analyst` |
+| `af-marketing` | Маркетинг | `market-analyst`, `tg-analyst`, `tg-editor` |
 | `af-meta` | Мета | `creator`, `evaluator`, `skill-scout` |
 | `af-office` | Офис | `lawyer`, `secretary` |
 | `af-ops` | Операционный | `process-writer` |
