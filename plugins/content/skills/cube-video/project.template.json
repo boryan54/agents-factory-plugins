@@ -1,0 +1,38 @@
+{
+  "_": "Шаблон проекта ролика для 3D-куба. Копируется в папку ролика как project.json.",
+  "name": "krossovok-nike",
+  "aspect_ratio": "9:16",
+  "out_dir": ".",
+
+  "frame": [
+    {
+      "id": "A_float",
+      "model": "chatgpt-image-2",
+      "resolution": "2K",
+      "refs": ["input/foto-tovara.jpg"],
+      "prompt": "СЮДА каркас из references/prompt-frame.md: БАЗА + СВЕТ + объект + сцена"
+    },
+    {
+      "id": "B_podium",
+      "model": "chatgpt-image-2",
+      "resolution": "2K",
+      "prompt": "второй вариант композиции для выбора заказчиком"
+    }
+  ],
+
+  "video": {
+    "id": "clip",
+    "model": "grok-imagine-1.5",
+    "resolution": "720p",
+    "duration": "6",
+    "start_frame": "frames/A_float.png",
+    "prompt": "СЮДА каркас движения из references/prompt-frame.md: движение + ЗАМОК СВЕТА + запреты"
+  },
+
+  "music": {
+    "id": "music",
+    "model": "suno-v5.5",
+    "instrumental": true,
+    "prompt": "calm minimal ambient loop, soft synth pad, slow tempo, no vocals, retail showroom mood"
+  }
+}

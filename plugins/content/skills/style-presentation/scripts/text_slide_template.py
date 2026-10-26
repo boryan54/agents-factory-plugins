@@ -164,7 +164,7 @@ _tb, _tf = add_textbox(0.57, SLIDE_H-0.5, 14, 0.4)
 set_run(_tf.paragraphs[0].add_run(), "Источник: ...", SZ_CAP, False, GREY_TXT)
 
 # Вывод: env SLIDE_OUTDIR позволяет собрать во временную папку, если целевой файл занят.
-outdir = os.environ.get("SLIDE_OUTDIR", r"D:\GD\AiPrezy")
+outdir = os.environ.get("SLIDE_OUTDIR", os.getcwd())
 os.makedirs(outdir, exist_ok=True)
 outpath = os.path.join(outdir, "text_slide.pptx")
 prs.save(outpath)
