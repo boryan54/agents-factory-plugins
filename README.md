@@ -26,10 +26,10 @@ Claude Code с командой специализированных агент�
 | Плагин | Отдел | Агенты |
 |---|---|---|
 | `af-code` | Код | `analyst`, `builder`, `coder`, `deployer`, `spec-writer`, `tester` |
-| `af-content` | ПродКонтент | `presenter`, `video-maker` |
+| `af-content` | ПродКонтент | `cube-maker`, `motion-designer`, `presenter`, `transcriber`, `video-maker` |
 | `af-marketing` | Маркетинг | `market-analyst`, `tg-analyst`, `tg-editor` |
 | `af-meta` | Мета | `creator`, `evaluator`, `skill-scout` |
-| `af-office` | Офис | `lawyer`, `secretary` |
+| `af-office` | Офис | `archivist`, `lawyer`, `secretary` |
 | `af-ops` | Операционный | `process-writer` |
 | `af-web` | Веб | `site-builder`, `web-analyst` |
 
