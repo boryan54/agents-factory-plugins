@@ -87,12 +87,15 @@ def main():
         for t in hit:
             fixes.append("[%s] с %s на %s" % (tc.strip(), t["speaker"], spk.strip()))
             t["speaker"] = spk.strip()
-    if fixes:   # склеить соседние реплики одного голоса после правки
+            t["_fixed"] = True
+    if fixes:   # склеить с соседом того же голоса только поправленные реплики
         merged = []
         for t in turns:
-            if merged and merged[-1]["speaker"] == t["speaker"]:
+            if (merged and merged[-1]["speaker"] == t["speaker"]
+                    and (t.get("_fixed") or merged[-1].get("_fixed"))):
                 merged[-1]["text"] += " " + t["text"]
                 merged[-1]["end"] = t["end"]
+                merged[-1]["_fixed"] = t.get("_fixed") or merged[-1].get("_fixed")
             else:
                 merged.append(dict(t))
         turns = merged
