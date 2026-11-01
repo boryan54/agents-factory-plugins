@@ -2,7 +2,7 @@
   "schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "af-office",
   "displayName": "Фабрика · Офисный отдел",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Офисные агенты: юристы, финансисты, секретари, архивариусы, ассистенты.",
   "author": {
     "name": "Boris Kupryakov",

@@ -2,7 +2,7 @@
   "schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "af-content",
   "displayName": "Фабрика · ПродКонтент",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Отдел продающего контента: видеомейкеры, презентаторы, расшифровщики, копирайтеры, дизайнеры карточек. Вадик (video-maker) — ролики через Genosai; Димон (presenter) — презентации 16:9 → PPTX/PDF через Genosai; Гриша (transcriber) — расшифровка видео с ВК-Видео в MD локально; Ювик (cube-maker) - вертикальные ролики для 3D-кубов и прозрачных витрин через Genosai + ffmpeg; Мойша (motion-designer) – моушн-ролики, нарисованные кодом: объяснялки, промо, анимация интерфейсов, кинетическая типографика, MP4 со звуком и голосом.",
   "author": {
     "name": "Boris Kupryakov",
