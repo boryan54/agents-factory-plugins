@@ -168,7 +168,9 @@ def main():
     L.append("")
     for t in turns:
         who = names.get(t["speaker"], t["speaker"])
-        L.append("**[%s] %s:** %s" % (hms(t["start"]), who, t["text"]))
+        # Длинное тире распознавание ставит само; правило заказчика – только среднее.
+        # Это знак, а не слово: замена не меняет сказанного.
+        L.append("**[%s] %s:** %s" % (hms(t["start"]), who, t["text"].replace("\u2014", "\u2013")))
         L.append("")
 
     text = "\n".join(L).rstrip() + "\n"
