@@ -16,17 +16,41 @@ description: >
 генерация → визуальный QA → сборка PPTX/PDF.
 
 ## Ключ API (стандарт фабрики)
-Порядок поиска: переменная `GENOSAI_API_KEY` → поле `api_key_file` в project.json →
+Основной вход – **BobGate** (свой шлюз: Genosai, Runware, OpenRouter с переключением при сбое).
+Ключ `BOBGATE_API_KEY=bg_...` – в `~/.secrets/bobgate.env` (или `.secrets/bobgate.env` вверх по дереву).
+Если BobGate не ответил, скрипт сам 5 минут работает через Genosai напрямую.
+Ключ Genosai (запасной путь) – порядок поиска: переменная `GENOSAI_API_KEY` → поле `api_key_file` в project.json →
 **`.secrets/genosai.env` в корне фабрики** (ищется автоматически вверх по дереву;
 формат `export GENOSAI_API_KEY=sdk_live_...`).
-**Ключ в чате не спрашивать, не показывать и не коммитить.** Нет файла — попроси заказчика
-положить его в `.secrets/genosai.env`.
+**Ключ в чате не спрашивать, не показывать и не коммитить.** Нет ни одного файла с ключом — смотри
+раздел «Веб-чат claude.ai» ниже: если подключён коннектор BobGate, работай через него; если нет — попроси
+заказчика положить ключ или подключить коннектор.
+
+## Веб-чат claude.ai — коннектор BobGate (нет ключа в `.secrets`)
+В облачной песочнице claude.ai нет файлов ключей. Вместо `gen_slides.py` слайды рисует **коннектор BobGate**
+(`https://bobgate.kupryakov.ru/mcp`, вход по паролю Бориса): инструменты `generate_image`, `task_status`,
+`chat_text`, `balance`, `list_reference_sets`. Расход идёт по ключу «веб-чаты» с суточным лимитом.
+Как понять, что этот режим: `py scripts/gen_slides.py` пишет «нет ключа», а в списке инструментов есть
+`generate_image` от BobGate.
+1. Структура и **гейт согласования** — как обычно, ни одной платной генерации до «ок».
+2. Стиль: `list_reference_sets` — фирменные наборы уже лежат на BobGate (имена как в `reference-sets/`).
+   Свой референс заказчика — только публичная ссылка в `image_urls`.
+3. Смета: `balance` (остаток суточного лимита в рублях). Цена слайда 1K — около 3–6 ₽.
+4. Генерация: на каждый слайд `generate_image` с `prompt` = `style` + `image_prompt`, `aspect_ratio` из
+   project.json, `model` (по умолчанию `chatgpt-image-2`), `reference_set`. Ждёт до ~100 с; если статус не
+   `succeeded` — `task_status` с `wait_seconds: 60`. Упал (`failed`) — повтори этот слайд, не весь дек.
+5. Скачай слайды в песочницу: `python scripts/fetch_slides.py project.json 1=<ссылка> 2=<ссылка> …`
+   (ссылки живут 72 часа). Песочница не пускает в интернет — попроси заказчика добавить
+   `bobgate.kupryakov.ru` в claude.ai → Настройки → Возможности → разрешённые домены; до этого отдай ссылки
+   на слайды списком.
+6. QA и сборка — как в режиме A: `build_pptx.py`, `build_pdf.py`.
 
 ## Состав скилла
 ```
 style-presentation/
 ├── SKILL.md
 ├── project.example.json          # шаблон конфига
+├── scripts/fetch_slides.py       # веб-чат: скачать слайды по ссылкам BobGate в out_dir
 ├── reference-sets/               # именованные наборы стилей (INDEX.md — каталог)
 └── scripts/
     ├── gen_slides.py             # генерация слайдов через Genosai (устойчив к 429/503, ретраи)
@@ -82,7 +106,7 @@ Genosai рисует ТОЛЬКО иллюстрацию (промпт «no text
 ## Экономия кредитов
 - Сначала структура и согласование, потом генерация.
 - Перегенерируй точечно (`N --force`), а не весь дек.
-- Следи за балансом: `GET /v1/balance` на `https://api.genosai.io` с Bearer-ключом.
+- Следи за балансом: `GET /v1/balance` на `https://bobgate.kupryakov.ru` с ключом BobGate (остаток лимита в рублях).
 
 ## Критерии качества (✅ / ❌)
 - ✅ Структура согласована заказчиком до единой платной генерации

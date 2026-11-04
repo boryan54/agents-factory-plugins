@@ -13,7 +13,8 @@ transient-ошибкам API (503/таймаут) и к сбою загрузк�
   python gen_slides.py path/to/project.json 5 9          # только слайды 5 и 9
   python gen_slides.py path/to/project.json 5 9 --force  # пересоздать 5 и 9
 
-Ключ API (sdk_...) ищется в порядке: переменная GENOSAI_API_KEY → поле "api_key_file" в
+Основной вход – BobGate (ключ bg_... в ~/.secrets/bobgate.env: BOBGATE_API_KEY=...), запасной – Genosai
+напрямую: если BobGate не ответил, 5 минут работаем через Genosai. Ключ Genosai (sdk_...) ищется в порядке: переменная GENOSAI_API_KEY → поле "api_key_file" в
 project.json → E:\\Claude\\genosai-cli\\api_key.txt.
 """
 import os
@@ -31,7 +32,10 @@ try:
 except Exception:
     pass
 
-BASE_URL = "https://api.genosai.io"
+BASE_URL = "https://api.genosai.io"   # Genosai напрямую – запасной путь
+BOBGATE_URL = "https://bobgate.kupryakov.ru"  # BobGate – основной вход (свой шлюз: Genosai, Runware, OpenRouter)
+DOWN_FOR = 300              # BobGate не ответил – 5 минут идём к Genosai напрямую
+BOBGATE_TIMEOUT = 15        # BobGate отвечает быстро; дольше – считаем недоступным
 POLL_TIMEOUT = 300          # 5 минут на попытку
 MAX_ATTEMPTS = 8
 # --- Троттлинг под rate limit Kie.ai (HTTP 429) ---
@@ -178,12 +182,115 @@ def get_key(cfg):
     )
 
 
+# ---------- точки входа: BobGate и Genosai ----------
+
+class Endpoint:
+    """Куда ходим: BobGate (основной) или Genosai напрямую (запасной). Свой предохранитель на 5 минут."""
+
+    def __init__(self, name, base, key, timeout=None):
+        self.name, self.base, self.key, self.timeout = name, base.rstrip("/"), key, timeout
+        self.down_until = 0.0
+
+    def up(self):
+        return time.time() >= self.down_until
+
+    def mark_down(self, why):
+        self.down_until = time.time() + DOWN_FOR
+        print("   [%s недоступен: %s] 5 минут работаю через запасной путь" % (self.name, why))
+
+
+ENDPOINTS = []
+
+
+def pick():
+    """Первая доступная точка входа; если все выключены – та, что включится раньше."""
+    for ep in ENDPOINTS:
+        if ep.up():
+            return ep
+    return min(ENDPOINTS, key=lambda e: e.down_until)
+
+
+def _env_values(path):
+    out = {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                if line.startswith("export "):
+                    line = line[len("export "):].strip()
+                name, _, val = line.partition("=")
+                out[name.strip()] = val.strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return out
+
+
+def _find_up(start, rel):
+    d = os.path.abspath(start)
+    for _ in range(8):
+        p = os.path.join(d, rel)
+        if os.path.exists(p):
+            return p
+        nd = os.path.dirname(d)
+        if nd == d:
+            break
+        d = nd
+    return ""
+
+
+def get_bobgate(cfg):
+    """Ключ и адрес BobGate: переменные BOBGATE_API_KEY / BOBGATE_URL → bobgate_key_file в project.json →
+    .secrets/bobgate.env вверх от скилла и от текущей папки → ~/.secrets/bobgate.env."""
+    key = os.environ.get("BOBGATE_API_KEY", "").strip()
+    url = os.environ.get("BOBGATE_URL", "").strip()
+    if not key:
+        paths = [cfg.get("bobgate_key_file") or "", _find_up(SKILL_DIR, os.path.join(".secrets", "bobgate.env")),
+                 _find_up(os.getcwd(), os.path.join(".secrets", "bobgate.env")),
+                 os.path.join(os.path.expanduser("~"), ".secrets", "bobgate.env")]
+        for p in paths:
+            v = _env_values(p) if p else {}
+            if v.get("BOBGATE_API_KEY"):
+                key, url = v["BOBGATE_API_KEY"], url or v.get("BOBGATE_URL", "")
+                break
+    return (url or BOBGATE_URL), key
+
+
+def build_endpoints(cfg):
+    """BobGate первым (если есть ключ), Genosai напрямую – запасным (если есть его ключ)."""
+    ENDPOINTS.clear()
+    url, bkey = get_bobgate(cfg)
+    if bkey:
+        ENDPOINTS.append(Endpoint("BobGate", url, bkey, BOBGATE_TIMEOUT))
+    try:
+        gkey = get_key(cfg)
+    except SystemExit:
+        if not ENDPOINTS:
+            sys.exit("Нет ключа ни BobGate (~/.secrets/bobgate.env), ни Genosai (.secrets/genosai.env). "
+                     "В веб-чате claude.ai работай через коннектор BobGate (generate_image) и "
+                     "scripts/fetch_slides.py – см. раздел «Веб-чат claude.ai» в SKILL.md.")
+        gkey = ""
+    if gkey:
+        ENDPOINTS.append(Endpoint("Genosai", BASE_URL, gkey))
+    print("Точки входа: " + " → ".join(e.name for e in ENDPOINTS))
+
+
+def _is_down_error(e):
+    """Сбой самой точки входа (а не запроса): нет соединения, тайм-аут, 5xx."""
+    if isinstance(e, urllib.error.HTTPError):
+        return e.code >= 500
+    return isinstance(e, (urllib.error.URLError, TimeoutError, ConnectionError, OSError))
+
+
 # ---------- REST ----------
 
-def api_request(method, path, key, body=None, raw_body=None, content_type=None, timeout=120):
+def api_request(method, path, ep, body=None, raw_body=None, content_type=None, timeout=120):
     pace_api()   # общий ограничитель темпа на все запросы к API
-    url = BASE_URL + path
-    headers = {"Authorization": "Bearer " + key}
+    url = ep.base + path
+    headers = {"Authorization": "Bearer " + ep.key}
+    if ep.timeout:
+        timeout = min(timeout, ep.timeout)
     data = None
     if raw_body is not None:
         data = raw_body
@@ -197,15 +304,23 @@ def api_request(method, path, key, body=None, raw_body=None, content_type=None, 
         return json.loads(resp.read().decode("utf-8"))
 
 
-def safe_request(method, path, key, body=None, retries=6):
+def safe_request(method, path, ep, body=None, retries=6):
     """Устойчивый вызов: ловит 429/503/таймаут/сетевые ошибки и ретраит. Возвращает dict или None.
     HTTP 429 (rate limit) не считается против обычного счётчика ретраев — ждём дольше и повторяем."""
     attempt = 0
     r429 = 0
     while attempt < retries and r429 < 10:
         try:
-            return api_request(method, path, key, body=body)
-        except urllib.error.HTTPError as e:
+            return api_request(method, path, ep, body=body)
+        except Exception as e:
+            if _is_down_error(e) and ep is not ENDPOINTS[-1]:
+                ep.mark_down(str(getattr(e, "code", "") or e)[:80])  # есть запасной путь – не ждём ретраев
+                return None
+            if not isinstance(e, urllib.error.HTTPError):
+                attempt += 1
+                print("   [API ретрай %d/%d] %s" % (attempt, retries, str(e)[:90]))
+                time.sleep(5)
+                continue
             if getattr(e, "code", None) == 429:
                 r429 += 1
                 print("   [429 rate limit] пауза 12с и повтор (429-попытка %d/10)" % r429)
@@ -213,10 +328,6 @@ def safe_request(method, path, key, body=None, retries=6):
                 continue
             attempt += 1
             print("   [API ретрай %d/%d] HTTP %s" % (attempt, retries, getattr(e, "code", "?")))
-            time.sleep(5)
-        except Exception as e:
-            attempt += 1
-            print("   [API ретрай %d/%d] %s" % (attempt, retries, str(e)[:90]))
             time.sleep(5)
     return None
 
@@ -233,7 +344,7 @@ def _extract_url(data):
     return None
 
 
-def upload(path_to_file, key):
+def upload(path_to_file, ep):
     """multipart-загрузка референса, возвращает URL (или None)."""
     for _ in range(4):
         try:
@@ -251,11 +362,14 @@ def upload(path_to_file, key):
             ]
             raw = b"\r\n".join(parts)
             ct = "multipart/form-data; boundary=" + boundary
-            data = api_request("POST", "/v1/uploads", key, raw_body=raw, content_type=ct)
+            data = api_request("POST", "/v1/uploads", ep, raw_body=raw, content_type=ct)
             url = _extract_url(data)
             if url:
                 return url
         except Exception as e:
+            if _is_down_error(e) and ep is not ENDPOINTS[-1]:
+                ep.mark_down(str(getattr(e, "code", "") or e)[:80])
+                return None
             print("   загрузка референса не удалась (%s), ретрай" % str(e)[:80])
         time.sleep(5)
     return None
@@ -312,8 +426,7 @@ def download_result(out_dir, num, url):
 
 
 class Generator:
-    def __init__(self, cfg, key):
-        self.key = key
+    def __init__(self, cfg):
         self.model = cfg.get("model", "chatgpt-image-2")
         self.ar = cfg.get("aspect_ratio", "16:9")
         self.style = cfg.get("style", "")
@@ -334,64 +447,74 @@ class Generator:
             cache = os.path.join(self.out_dir, "_ref_cache")
             self.ref_files = [compress_ref(p, cache) if os.path.exists(p) else p
                               for p in self.ref_files]
-        self.ref_urls = []
+        self.ref_urls = {}   # точка входа → ссылки на референсы (у каждой свои)
         self._last_ref_refresh = 0.0
 
-    def upload_refs(self):
+    def upload_refs(self, ep):
+        """Залить референсы в точку входа. False – она недоступна (переключимся на запасную)."""
         urls = []
         for p in self.ref_files:
             if not os.path.exists(p):
                 sys.exit("Референс не найден: " + p)
-            u = upload(p, self.key)
+            u = upload(p, ep)
             if not u:
+                if not ep.up():
+                    return False
                 sys.exit("Не удалось залить референс: " + p)
-            print("   референс залит: %s" % u)
+            print("   референс залит (%s): %s" % (ep.name, u))
             urls.append(u)
-        self.ref_urls = urls
+        self.ref_urls[ep.name] = urls
+        return True
 
-    def maybe_refresh_refs(self):
+    def maybe_refresh_refs(self, ep):
         if time.time() - self._last_ref_refresh < 25:
             return
         new = []
         for p in self.ref_files:
-            u = upload(p, self.key)
+            u = upload(p, ep)
             if u:
                 new.append(u)
         self._last_ref_refresh = time.time()
         if new:
-            self.ref_urls = new
+            self.ref_urls[ep.name] = new
             print("   референсы перезалиты (%d шт.)" % len(new))
 
     def submit(self, slide):
-        inp = {"prompt": self.style + slide["image_prompt"], "aspect_ratio": self.ar}
-        if self.ref_urls:
-            inp["image_urls"] = list(self.ref_urls)
-        throttle_submit()   # соблюдаем лимит: не больше SUBMIT_MAX задач за SUBMIT_WINDOW сек
-        resp = safe_request("POST", "/v1/createTask", self.key,
-                            body={"model": self.model, "input": inp})
-        if not resp:
-            return None
-        return (resp.get("data") or {}).get("taskId") or resp.get("taskId")
+        """Отправить слайд. Возвращает (taskId, точка входа) или (None, None)."""
+        for _ in range(len(ENDPOINTS)):
+            ep = pick()
+            if self.ref_files and ep.name not in self.ref_urls and not self.upload_refs(ep):
+                continue
+            inp = {"prompt": self.style + slide["image_prompt"], "aspect_ratio": self.ar}
+            if self.ref_urls.get(ep.name):
+                inp["image_urls"] = list(self.ref_urls[ep.name])
+            throttle_submit()   # соблюдаем лимит: не больше SUBMIT_MAX задач за SUBMIT_WINDOW сек
+            resp = safe_request("POST", "/v1/createTask", ep, body={"model": self.model, "input": inp})
+            if resp:
+                return (resp.get("data") or {}).get("taskId") or resp.get("taskId"), ep
+            if ep.up():
+                break
+        return None, None
 
     def run(self, slides):
         # 1) разом отправляем все
         state = {}
         for s in slides:
-            tid = self.submit(s)
-            state[s["num"]] = {"slide": s, "task": tid, "start": time.time(), "att": 1}
-            print("[слайд %d] отправлено (task=%s)" % (s["num"], tid))
+            tid, ep = self.submit(s)
+            state[s["num"]] = {"slide": s, "task": tid, "ep": ep, "start": time.time(), "att": 1}
+            print("[слайд %d] отправлено через %s (task=%s)" % (s["num"], ep.name if ep else "–", tid))
         # 2) одновременный опрос
         while state:
             for num in list(state.keys()):
                 st = state[num]
                 if not st["task"]:
-                    tid = self.submit(st["slide"])
+                    tid, ep = self.submit(st["slide"])
                     if tid:
-                        st["task"] = tid
+                        st["task"], st["ep"] = tid, ep
                         st["start"] = time.time()
                         print("[слайд %d] переотправлено (попытка %d)" % (num, st["att"]))
                     continue
-                info = safe_request("GET", "/v1/taskInfo?taskId=" + urllib.parse.quote(st["task"]), self.key)
+                info = safe_request("GET", "/v1/taskInfo?taskId=" + urllib.parse.quote(st["task"]), st["ep"])
                 if not info:
                     continue
                 d = info.get("data", info)
@@ -409,7 +532,7 @@ class Generator:
                     msg = (d.get("message", "") or "")
                     print("[слайд %d] ПРОВАЛ: %s (%s)" % (num, status, msg))
                     if "референс" in msg.lower() or "reference" in msg.lower():
-                        self.maybe_refresh_refs()
+                        self.maybe_refresh_refs(st["ep"])
                     self._retry_or_drop(state, num)
                 else:
                     if time.time() - st["start"] > POLL_TIMEOUT:
@@ -443,8 +566,8 @@ def main():
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    key = get_key(cfg)
-    gen = Generator(cfg, key)
+    build_endpoints(cfg)
+    gen = Generator(cfg)
 
     targets = []
     for s in cfg["slides"]:
@@ -462,7 +585,9 @@ def main():
         return
 
     print("Заливаю референсы один раз (%d шт.)..." % len(gen.ref_files))
-    gen.upload_refs()
+    while gen.ref_files and not gen.upload_refs(pick()):
+        if all(not e.up() for e in ENDPOINTS):
+            sys.exit("Ни BobGate, ни Genosai не принимают референсы")
     gen._last_ref_refresh = time.time()
     print("Параллельная генерация слайдов: %s" % ", ".join(str(s["num"]) for s in targets))
     gen.run(targets)
