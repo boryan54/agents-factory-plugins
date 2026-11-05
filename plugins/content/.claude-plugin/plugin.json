@@ -2,8 +2,8 @@
   "schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "af-content",
   "displayName": "Фабрика · ПродКонтент",
-  "version": "0.5.2",
-  "description": "Отдел продающего контента: видеомейкеры, презентаторы, расшифровщики, копирайтеры, дизайнеры карточек. Вадик (video-maker) — ролики через Genosai; Димон (presenter) — презентации 16:9 → PPTX/PDF через Genosai; Гриша (transcriber) — расшифровка видео с ВК-Видео в MD локально; Ювик (cube-maker) - вертикальные ролики для 3D-кубов и прозрачных витрин через Genosai + ffmpeg; Мойша (motion-designer) – моушн-ролики, нарисованные кодом: объяснялки, промо, анимация интерфейсов, кинетическая типографика, MP4 со звуком и голосом.",
+  "version": "0.5.3",
+  "description": "Отдел продающего контента. Вадик (video-maker) – товарные ролики; Димон (presenter) – презентации 16:9 в PPTX/PDF; Гриша (transcriber) – расшифровка видео с ВК-Видео в MD; Ювик (cube-maker) – вертикальные лупы для 3D-кубов и прозрачных витрин; Мойша (motion-designer) – моушн-ролики кодом: объяснялки, промо, анимация интерфейсов, MP4 со звуком и голосом.",
   "author": {
     "name": "Boris Kupryakov",
     "email": "boris.kupryakov@gmail.com"
