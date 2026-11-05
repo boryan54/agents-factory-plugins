@@ -2,9 +2,22 @@
   "schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "af-marketing",
   "displayName": "Фабрика · Маркетинг",
-  "version": "0.1.0",
-  "description": "Отдел маркетинга: разведка рынка и контент-планирование на данных. Фома (market-analyst) — конкуренты, свободные ниши, темы аудитории, план контента из отчётов.",
-  "author": { "name": "Boris Kupryakov", "email": "boris.kupryakov@gmail.com" },
-  "keywords": ["marketing", "market-research", "competitors", "trends", "content-plan", "firecrawl"],
+  "version": "0.2.0",
+  "description": "Отдел маркетинга: разведка рынка, контент и реклама. Фома (market-analyst) – конкуренты, ниши, темы аудитории, план контента; Дирик (ad-buyer) – настройка, ведение и аудит Яндекс Директа через API.",
+  "author": {
+    "name": "Boris Kupryakov",
+    "email": "boris.kupryakov@gmail.com"
+  },
+  "keywords": [
+    "marketing",
+    "market-research",
+    "competitors",
+    "trends",
+    "content-plan",
+    "firecrawl",
+    "yandex-direct",
+    "ppc",
+    "advertising"
+  ],
   "license": "MIT"
 }

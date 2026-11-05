@@ -1,0 +1,23 @@
+{
+  "client_login": "LOGIN_КАБИНЕТА_ДИРЕКТА",
+  "name_prefix": "client-2026-10",
+  "workdir": ".",
+  "model": "chatgpt-image-2",
+  "resolution": "1K",
+  "aspects": ["1:1", "16:9", "3:4"],
+  "style": "photorealistic editorial photo, natural light, brand accent color #C9FF3D only for the price badge, clean modern sans-serif typography, caption block in the lower-center of the frame on a subtle dark gradient",
+  "goals": ["ID_ЦЕЛИ_МЕТРИКИ_ЗАЯВКА"],
+  "concepts": [
+    {
+      "id": "main",
+      "ad_group_id": 0,
+      "control_ad_id": 0,
+      "variants": [
+        {"id": "A", "scene": "smiling specialist with a client in the real interior of the business, product or result clearly visible",
+         "caption": ["Первая услуга −50 %", "1 600 ₽ вместо 3 200 ₽"]},
+        {"id": "B", "scene": "close-up of the product or the result in hands, simple background",
+         "caption": ["Первая услуга −50 %", "1 600 ₽ вместо 3 200 ₽"]}
+      ]
+    }
+  ]
+}
