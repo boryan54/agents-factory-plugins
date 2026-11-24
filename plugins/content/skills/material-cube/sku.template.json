@@ -1,0 +1,34 @@
+{
+  "_": "Карточка артикула. Копируется в артикулы/<артикул>/sku.json. Поля с _ – подсказки, скрипт их не читает.",
+
+  "sku": "18456732",
+  "barcode": "4600000000000",
+  "name": "Керамогранит Оникс Мэджик Браун 60x120 полированный",
+  "client": "lemana",
+
+  "type": "porcelain_xl",
+  "_type": "одно из: wall_tile, floor_tile, porcelain_xl, laminate, spc, parquet, mosaic (references/rooms.json)",
+
+  "material_en": "polished porcelain tile with an onyx marble look: pearly grey-beige stone with warm golden-amber veins",
+  "_material_en": "одна фраза по-английски: что за материал, цвет, рисунок. Только то, что видно на фото или дано заказчиком",
+
+  "format_mm": [600, 1200],
+  "finish": "polished, mirror gloss",
+  "layout": "straight",
+  "_layout": "ключ из layouts в rooms.json",
+  "grout_mm": 2,
+  "grout_color": "light beige",
+
+  "photos": ["фото/1.jpg", "фото/2.jpg"],
+  "_photos": "до 4 лучших фото: общий план, крупный план фактуры, фото в укладке. Чем больше реальных фото, тем точнее рисунок",
+
+  "rooms": [],
+  "_rooms": "пусто – все комнаты типа из rooms.json; можно перечислить свои ключи",
+
+  "package": "standard",
+  "_package": "base | standard | premium (references/package.md)",
+  "loop_rooms": [],
+  "_loop_rooms": "для standard: какие 2 комнаты оживить; пусто – первые две",
+
+  "qc": {}
+}

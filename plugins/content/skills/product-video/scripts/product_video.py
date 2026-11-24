@@ -76,6 +76,29 @@ def _find_api_key() -> str | None:
 
 API_KEY = _find_api_key()
 
+
+def _find_bobgate() -> tuple[str, str] | None:
+    """Озвучка идёт через BobGate (Google gemini-3.8-flash-tts – дешевле и лучше Genosai), если есть его ключ:
+    env BOBGATE_API_KEY или .secrets/bobgate.env (BOBGATE_API_KEY, BOBGATE_URL) вверх от cwd, от скрипта и в ~."""
+    import re
+    key, url = os.environ.get("BOBGATE_API_KEY"), os.environ.get("BOBGATE_URL")
+    if not key:
+        dirs = [d for start in (Path.cwd(), Path(__file__).resolve().parent) for d in [start, *start.parents]]
+        for d in [*dirs, Path.home()]:
+            env = d / ".secrets" / "bobgate.env"
+            if env.is_file():
+                text = env.read_text(encoding="utf-8")
+                m = re.search(r"^BOBGATE_API_KEY\s*=\s*(\S+)", text, re.M)
+                if m:
+                    key = m.group(1).strip("\"'")
+                    u = re.search(r"^BOBGATE_URL\s*=\s*(\S+)", text, re.M)
+                    url = url or (u.group(1).strip("\"'") if u else None)
+                    break
+    return ((url or "https://bobgate.kupryakov.ru").rstrip("/"), key) if key else None
+
+
+BOBGATE = _find_bobgate()
+
 POLL_INTERVAL_SEC = 5
 WATCHDOG_SEC = 300          # 5 минут на одну попытку задачи
 GEN_ATTEMPTS = 3            # пере-createTask при зависании/сбое
@@ -105,7 +128,9 @@ def _request(method: str, url: str, **kwargs):
     raise last
 
 
-def auth_headers() -> dict:
+def auth_headers(gate: tuple[str, str] | None = None) -> dict:
+    if gate:
+        return {"Authorization": f"Bearer {gate[1]}"}
     if not API_KEY:
         sys.exit("Нет ключа: задай env GENOSAI_API_KEY или создай <корень фабрики>/.secrets/genosai.env "
                  "со строкой GENOSAI_API_KEY=sdk_live_...")
@@ -137,18 +162,18 @@ def upload_file(path: str) -> str:
     return r.json()["url"]
 
 
-def create_task(body: dict) -> str:
-    r = _request("POST", f"{API_BASE}/v1/createTask",
-                 headers={**auth_headers(), "Content-Type": "application/json"},
+def create_task(body: dict, gate: tuple[str, str] | None = None) -> str:
+    r = _request("POST", f"{gate[0] if gate else API_BASE}/v1/createTask",
+                 headers={**auth_headers(gate), "Content-Type": "application/json"},
                  data=json.dumps(body, ensure_ascii=False).encode("utf-8"), timeout=30)
     _raise_for_genosai_error(r)
     return r.json()["data"]["taskId"]
 
 
-def poll_task(task_id: str, timeout_sec: float) -> dict:
+def poll_task(task_id: str, timeout_sec: float, gate: tuple[str, str] | None = None) -> dict:
     deadline = time.time() + timeout_sec
     while time.time() < deadline:
-        r = _request("GET", f"{API_BASE}/v1/taskInfo", headers=auth_headers(),
+        r = _request("GET", f"{gate[0] if gate else API_BASE}/v1/taskInfo", headers=auth_headers(gate),
                      params={"taskId": task_id}, timeout=30)
         _raise_for_genosai_error(r)
         d = r.json()["data"]
@@ -177,7 +202,7 @@ def _ext_from_url(url: str, default: str) -> str:
 
 def run_generation(key: str, body: dict, results: dict, results_file: Path,
                    dest_stem: Path, default_ext: str, media_index: int = 0,
-                   stagger_sec: float = 0.0) -> dict:
+                   stagger_sec: float = 0.0, gate: tuple[str, str] | None = None) -> dict:
     """createTask + вотчдог (5 мин × 3 попытки) + скачивание. Кэшируется в results.json."""
     cached = results.get(key, {})
     if cached.get("status") == "succeeded" and Path(cached.get("local_path", "")).exists():
@@ -188,15 +213,16 @@ def run_generation(key: str, body: dict, results: dict, results_file: Path,
     last_err = None
     for attempt in range(1, GEN_ATTEMPTS + 1):
         try:
-            tid = create_task(body)
-            d = poll_task(tid, WATCHDOG_SEC)
+            tid = create_task(body, gate)
+            d = poll_task(tid, WATCHDOG_SEC, gate)
             urls = d["result"]["media_urls"]
             url = urls[min(media_index, len(urls) - 1)]
             dest = dest_stem.with_suffix("." + _ext_from_url(url, default_ext))
             download(url, dest)
             entry = {"status": "succeeded", "media_urls": urls, "local_path": str(dest),
                      "cost": d.get("cost"), "taskId": tid}
-            print(f"{key}: готово ({d.get('cost')} кред., попытка {attempt}) → {dest}", flush=True)
+            unit = "₽ BobGate" if gate else "кред."
+            print(f"{key}: готово ({d.get('cost')} {unit}, попытка {attempt}) → {dest}", flush=True)
             break
         except TimeoutError as e:
             last_err = e
@@ -351,15 +377,16 @@ def phase_tts(project: dict) -> None:
 
     def worker(idx: int, scene: dict) -> dict:
         n = scene["n"]
-        body = {"model": "gemini-3.1-flash-tts",
+        body = {"model": "gemini-3.8-flash-tts" if BOBGATE else "gemini-3.1-flash-tts",
                 "input": {"text": scene["vo_text"],
                           "voice": tts.get("voice", "Kore"),
                           "style": tts.get("style", "Promo/Hype"),
                           "pace": tts.get("pace", "Natural")}}
         return run_generation(f"vo_{n:02d}", body, results, results_file,
                               workdir / f"vo_{n:02d}", "wav",
-                              stagger_sec=idx * DISPATCH_GAP_SEC)
+                              stagger_sec=idx * DISPATCH_GAP_SEC, gate=BOBGATE)
 
+    print("озвучка: " + ("BobGate, gemini-3.8-flash-tts" if BOBGATE else "Genosai, gemini-3.1-flash-tts"), flush=True)
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
         for fut in as_completed([ex.submit(worker, i, s) for i, s in enumerate(project["scenes"])]):
             fut.result()

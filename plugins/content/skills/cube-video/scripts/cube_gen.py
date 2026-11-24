@@ -32,7 +32,11 @@ import time
 import urllib.request
 import uuid
 
-HOST = "https://api.genosai.io"
+GENOSAI = "https://api.genosai.io"
+BOBGATE = "https://bobgate.kupryakov.ru"
+# Адрес выбирается по ключу: есть ключ BobGate (свой шлюз, сам переключает поставщиков) – идём через него,
+# иначе напрямую в Genosai. CUBE_API_BASE задаёт адрес вручную.
+HOST = os.environ.get("CUBE_API_BASE") or GENOSAI
 
 # ── Цены ЗАМЕРЕНЫ на живом API (2026-08-21), а не взяты из каталога ──────────
 # кредитов за одну задачу при указанной настройке
@@ -63,26 +67,41 @@ BROKEN = {"seedance-2.5": "на 720p отдаёт HTTP 400 - не предлаг
 
 
 # ── Ключ и сеть ──────────────────────────────────────────────────────────────
-def find_key():
-    """env GENOSAI_API_KEY или .secrets/genosai.env вверх по дереву."""
-    if os.environ.get("GENOSAI_API_KEY"):
-        return os.environ["GENOSAI_API_KEY"]
+def _from_files(fname, var):
+    """Ключ из .secrets/<fname> вверх по дереву от проекта и от скилла, потом ~/.secrets."""
     seeds = [os.getcwd(), os.path.dirname(os.path.abspath(__file__))]
     seen = set()
+    cands = []
     for seed in seeds:
         d = seed
         while d and d not in seen:
             seen.add(d)
-            p = os.path.join(d, ".secrets", "genosai.env")
-            if os.path.isfile(p):
-                for line in open(p, encoding="utf-8"):
-                    m = re.search(r"GENOSAI_API_KEY\s*=\s*(\S+)", line)
-                    if m:
-                        return m.group(1).strip("\"'")
+            cands.append(os.path.join(d, ".secrets", fname))
             nd = os.path.dirname(d)
             if nd == d:
                 break
             d = nd
+    cands.append(os.path.join(os.path.expanduser("~"), ".secrets", fname))
+    for p in cands:
+        if os.path.isfile(p):
+            for line in open(p, encoding="utf-8"):
+                m = re.search(var + r"\s*=\s*(\S+)", line)
+                if m:
+                    return m.group(1).strip("\"'")
+    return None
+
+
+def find_key():
+    """Сначала ключ BobGate (env BOBGATE_API_KEY или .secrets/bobgate.env), потом Genosai
+    (env GENOSAI_API_KEY или .secrets/genosai.env вверх по дереву)."""
+    global HOST
+    bg = os.environ.get("BOBGATE_API_KEY") or _from_files("bobgate.env", "BOBGATE_API_KEY")
+    if bg:
+        HOST = os.environ.get("CUBE_API_BASE") or os.environ.get("BOBGATE_BASE_URL") or BOBGATE
+        return bg
+    g = os.environ.get("GENOSAI_API_KEY") or _from_files("genosai.env", "GENOSAI_API_KEY")
+    if g:
+        return g
     sys.exit("нет ключа: создай .secrets/genosai.env со строкой "
              "GENOSAI_API_KEY=sdk_live_... . В чате ключ не спрашивать.")
 

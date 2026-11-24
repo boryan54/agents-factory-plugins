@@ -15,7 +15,7 @@ description: Производственный набор для motion-роли�
 - `template/audio.py` + `scripts/audio_kit.py` – пример звука и библиотека инструментов.
 - `references/timeline-format.md` – формат `timeline.json`.
 - `references/production-lessons.md` – уроки реальных роликов: скорость, текст, камера, звук, сборка. **Прочитай до кода.**
-- Цены и голоса Genosai – в шапке `scripts/tts.py`.
+- Голос – через BobGate (gemini-3.8-flash-tts), без его ключа – Genosai; цены и голоса – в шапке `scripts/tts.py`.
 
 ## Шаги
 1. **Папка ролика.** `python scripts/init_project.py <папка>` – кладёт движок, пример сцены, звук, `timeline.json`.

@@ -1,0 +1,73 @@
+{
+  "_": "Библиотека комнат для пакета артикула. Источник правды для material_cube.py. Комнату добавляют сюда, а не в промпт руками. Тексты сцен по-английски, названия для каталога по-русски.",
+
+  "types": {
+    "wall_tile":   {"ru": "настенная плитка",  "piece": "wall tile",            "rooms": ["bath_wall", "kitchen_backsplash", "shower_wall", "wc_wall"]},
+    "floor_tile":  {"ru": "напольная плитка / керамогранит", "piece": "floor tile", "rooms": ["bath_floor", "kitchen_floor", "hallway_floor", "living_floor", "balcony_floor"]},
+    "porcelain_xl": {"ru": "керамогранит большого формата", "piece": "large-format porcelain slab", "rooms": ["bath_wall", "living_accent_wall", "living_floor", "hallway_floor", "kitchen_floor"]},
+    "laminate":    {"ru": "ламинат",            "piece": "laminate plank",       "rooms": ["living_floor", "bedroom_floor", "hallway_floor", "kids_floor"]},
+    "spc":         {"ru": "SPC / кварцвинил",   "piece": "SPC vinyl plank",      "rooms": ["living_floor", "kitchen_floor", "hallway_floor", "bedroom_floor", "bath_floor"]},
+    "parquet":     {"ru": "паркетная доска",    "piece": "engineered wood plank", "rooms": ["living_floor", "bedroom_floor", "kids_floor"]},
+    "mosaic":      {"ru": "мозаика",            "piece": "mosaic sheet",         "rooms": ["shower_wall", "kitchen_backsplash", "bath_wall"]}
+  },
+
+  "rooms": {
+    "bath_floor": {
+      "ru": "Ванная – пол", "surface": "floor",
+      "scene": "A modern bathroom: freestanding white bathtub along the back wall, wall-hung white vanity with a round mirror on the right wall, a towel rail, one green plant. Walls are plain light neutral plaster."
+    },
+    "bath_wall": {
+      "ru": "Ванная – стены", "surface": "walls",
+      "scene": "A modern bathroom: freestanding white bathtub in front of the back wall, wall-hung white vanity with a round mirror on the right wall, a towel rail. The floor is plain light-grey microcement."
+    },
+    "shower_wall": {
+      "ru": "Душевая", "surface": "walls",
+      "scene": "A walk-in shower zone filling the back of the room: frameless clear glass partition on the left, brushed-steel rain shower head, a niche with two white bottles. The floor is plain light-grey microcement."
+    },
+    "wc_wall": {
+      "ru": "Санузел", "surface": "walls",
+      "scene": "A compact guest toilet: wall-hung white toilet centred against the back wall, small white basin on the right wall, a slim mirror. The floor is plain light-grey microcement."
+    },
+    "kitchen_backsplash": {
+      "ru": "Кухня – фартук", "surface": "backsplash",
+      "scene": "A modern kitchen seen straight on: a straight run of matte white handleless kitchen units along the back wall, light wood worktop, built-in hob and a sink with a black tap, open shelf with a few ceramic bowls. Upper wall above the backsplash is plain white plaster. The floor is plain light oak."
+    },
+    "kitchen_floor": {
+      "ru": "Кухня – пол", "surface": "floor",
+      "scene": "A modern kitchen seen straight on: a straight run of matte light-grey handleless kitchen units along the back wall, light worktop, a small round dining table with two chairs in the foreground on the left. Walls are plain white plaster."
+    },
+    "hallway_floor": {
+      "ru": "Прихожая", "surface": "floor",
+      "scene": "An apartment entrance hall: a white entrance door in the centre of the back wall, a slim bench with a pair of shoes on the left, a coat rack and a full-height mirror on the right wall. Walls are plain warm-white plaster."
+    },
+    "living_floor": {
+      "ru": "Гостиная – пол", "surface": "floor",
+      "scene": "A bright living room: a light-grey sofa against the back wall, a low light-wood coffee table, a soft round rug that covers only a small part of the floor, a floor lamp and a large plant. Walls are plain warm-white plaster."
+    },
+    "living_accent_wall": {
+      "ru": "Гостиная – акцентная стена", "surface": "back wall",
+      "scene": "A bright living room: a low TV console and a slim wall-mounted TV on the back wall, a light-grey sofa seen from behind in the foreground. Side walls are plain warm-white plaster, the floor is light oak."
+    },
+    "bedroom_floor": {
+      "ru": "Спальня", "surface": "floor",
+      "scene": "A calm bedroom: a double bed with white linen against the back wall, two bedside tables with small lamps, a bench at the foot of the bed. Walls are plain soft-beige plaster."
+    },
+    "kids_floor": {
+      "ru": "Детская", "surface": "floor",
+      "scene": "A light children's room: a single bed with a pastel blanket against the back wall, a low open toy shelf, a small play tent in the corner, a few wooden toys on the floor. Walls are plain pale-sage plaster."
+    },
+    "balcony_floor": {
+      "ru": "Балкон / лоджия", "surface": "floor",
+      "scene": "A glazed loggia: a wide window across the back wall with a city view in soft daylight, two wicker chairs and a small round table, a few potted plants. Side walls are plain white plaster."
+    }
+  },
+
+  "layouts": {
+    "straight": "laid in a straight grid, joints aligned",
+    "offset_half": "laid in a running bond, each row offset by half a piece",
+    "offset_third": "laid in a running bond, each row offset by one third of a piece",
+    "herringbone": "laid in a herringbone pattern",
+    "diagonal": "laid diagonally at 45 degrees",
+    "planks_random": "planks laid in a staggered pattern with random end joints, running away from the camera into the depth of the room"
+  }
+}

@@ -2,7 +2,7 @@
   "schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "af-web",
   "displayName": "Фабрика · Веб-отдел",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "Агенты веб-разработки: веб-аналитики, верстальщики, дизайнеры интерфейсов.",
   "author": { "name": "Boris Kupryakov", "email": "boris.kupryakov@gmail.com" },
   "keywords": ["web", "frontend", "layout", "ui", "design"],

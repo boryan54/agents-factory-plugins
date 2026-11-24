@@ -2,8 +2,8 @@
   "schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "af-marketing",
   "displayName": "Фабрика · Маркетинг",
-  "version": "0.2.0",
-  "description": "Отдел маркетинга: разведка рынка, контент и реклама. Фома (market-analyst) – конкуренты, ниши, темы аудитории, план контента; Дирик (ad-buyer) – настройка, ведение и аудит Яндекс Директа через API.",
+  "version": "0.3.0",
+  "description": "Отдел маркетинга: разведка рынка, контент и реклама. Фома (market-analyst) – конкуренты, ниши, темы аудитории, план контента; Дирик (ad-buyer) – настройка, ведение и аудит Яндекс Директа через API. Серега (seo-expert) – главный по SEO: Яндекс, Google и ИИ-ответы, семантика, SEO-тексты, аудит продвижения.",
   "author": {
     "name": "Boris Kupryakov",
     "email": "boris.kupryakov@gmail.com"
@@ -17,7 +17,9 @@
     "firecrawl",
     "yandex-direct",
     "ppc",
-    "advertising"
+    "advertising",
+    "seo",
+    "geo"
   ],
   "license": "MIT"
 }
